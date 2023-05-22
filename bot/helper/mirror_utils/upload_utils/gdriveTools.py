@@ -15,7 +15,7 @@ from googleapiclient.http import MediaFileUpload, MediaIoBaseDownload
 from tenacity import retry, wait_exponential, stop_after_attempt, retry_if_exception_type, RetryError
 from bot.helper.ext_utils.html_helper import hmtl_content
 from bot.helper.telegram_helper.button_build import ButtonMaker
-from bot import bot, config_dict, ulist_listener, user_data, DRIVES_NAMES, DRIVES_IDS, INDEX_URLS, GLOBAL_EXTENSION_FILTER
+from bot import bot, config_dict, ulist_listener, user_data, DRIVES_NAMES, DRIVES_IDS, INDEX_URLS, GLOBAL_EXTENSION_FILTER, OWNER_ID
 from bot.helper.ext_utils.telegraph_helper import telegraph
 from bot.helper.ext_utils.bot_utils import get_readable_file_size, setInterval, change_filename, getGDriveUploadUtils, userlistype
 from bot.helper.ext_utils.fs_utils import get_mime_type
@@ -388,7 +388,13 @@ class GoogleDriveHelper:
                 msg += f'\n<b>SubFolders: </b>{self.__total_folders}'
                 msg += f'\n<b>Files: </b>{self.__total_files}'
                 buttons = ButtonMaker()
-                buttons.buildbutton("☁️ Drive Link", durl)
+                if config_dict['DISABLE_DRIVE_LINK']:
+                    if self.user_id == OWNER_ID:
+                        buttons.buildbutton("☁️ Drive Link", durl)
+                    else:
+                        pass
+                else:
+                    buttons.buildbutton("☁️ Drive Link", durl)
                 if INDEX_URL := INDEXURL:
                     url_path = rquote(f'{f_name}', safe='')
                     url = f'{INDEX_URL}/{url_path}/'
@@ -398,7 +404,13 @@ class GoogleDriveHelper:
                 msg += f'<b>Name: </b><code>{file.get("name")}</code>'
                 durl = self.__G_DRIVE_BASE_DOWNLOAD_URL.format(file.get("id"))
                 buttons = ButtonMaker()
-                buttons.buildbutton("☁️ Drive Link", durl)
+                if config_dict['DISABLE_DRIVE_LINK']:
+                    if self.user_id == OWNER_ID:
+                        buttons.buildbutton("☁️ Drive Link", durl)
+                    else:
+                        pass
+                else:
+                    buttons.buildbutton("☁️ Drive Link", durl)
                 if mime_type is None:
                     mime_type = 'File'
                 msg += f'\n<b>Size: </b>{get_readable_file_size(int(meta.get("size", 0)))}'
@@ -593,10 +605,22 @@ class GoogleDriveHelper:
                     furl = f"https://drive.google.com/drive/folders/{file.get('id')}"
                     if tegr:
                         msg += f"📁 <code>{file.get('name')}<br>(folder)</code><br>"
-                        msg += f"<b><a href='{furl}'>Drive Link</a></b>"
-                    else: 
+                        if config_dict['DISABLE_DRIVE_LINK']:
+                            if self.user_id == OWNER_ID:
+                                msg += f"<b><a href='{furl}'>Drive Link</a></b>"
+                            else:
+                                pass
+                        else:
+                            msg += f"<b><a href='{furl}'>Drive Link</a></b>"
+                    else:
                         msg += f"📁 <code>{file.get('name')}\n(folder)</code>\n"
-                        msg += f"<b><a href='{furl}'>Drive Link</a></b>"
+                        if config_dict['DISABLE_DRIVE_LINK']:
+                            if self.user_id == OWNER_ID:
+                                msg += f"<b><a href='{furl}'>Drive Link</a></b>"
+                            else:
+                                pass
+                        else:
+                            msg += f"<b><a href='{furl}'>Drive Link</a></b>"
                     if index_url:
                         if isRecur:
                             url_path = "/".join([rquote(n, safe='') for n in self.__get_recursive_list(file, dir_id)])
@@ -613,10 +637,22 @@ class GoogleDriveHelper:
                     furl = f"https://drive.google.com/uc?id={file.get('id')}&export=download"
                     if tegr:
                         msg += f"📄 <code>{file.get('name')}<br>({get_readable_file_size(int(file.get('size', 0)))})</code><br>"
-                        msg += f"<b><a href='{furl}'>Drive Link</a></b>"
+                        if config_dict['DISABLE_DRIVE_LINK']:
+                            if self.user_id == OWNER_ID:
+                                msg += f"<b><a href='{furl}'>Drive Link</a></b>"
+                            else:
+                                pass
+                        else:
+                             msg += f"<b><a href='{furl}'>Drive Link</a></b>"
                     else:
                         msg += f"📄 <code>{file.get('name')}\n({get_readable_file_size(int(file.get('size', 0)))})</code>\n"
-                        msg += f"<b><a href='{furl}'>Drive Link</a></b>"
+                        if config_dict['DISABLE_DRIVE_LINK']:
+                            if self.user_id == OWNER_ID:
+                                msg += f"<b><a href='{furl}'>Drive Link</a></b>"
+                            else:
+                                pass
+                        else:
+                            msg += f"<b><a href='{furl}'>Drive Link</a></b>"
                     if index_url:
                         if isRecur:
                             url_path = "/".join(rquote(n, safe='') for n in self.__get_recursive_list(file, dir_id))
